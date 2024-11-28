@@ -1,0 +1,45 @@
+# This file is the entry point to configure your own services.
+# Files in the packages/ subdirectory configure your dependencies.
+
+# Put parameters here that don't need to change on each machine where the app is deployed
+# https://symfony.com/doc/current/best_practices.html#use-parameters-for-application-configuration
+parameters:
+
+services:
+    # default configuration for services in *this* file
+    _defaults:
+        autowire: true      # Automatically injects dependencies in your services.
+        autoconfigure: true # Automatically registers your services as commands, event subscribers, etc.
+
+    # makes classes in src/ available to be used as services
+    # this creates a service per class whose id is the fully-qualified class name
+    App\:
+        resource: '../src/'
+        exclude:
+            - '../src/DependencyInjection/'
+            - '../src/Entity/'
+            - '../src/Kernel.php'
+
+    # add more service definitions when explicit configuration is needed
+    # please note that last definitions always *replace* previous ones
+    App\Controller\:
+        resource: '../src/Controller/'
+        tags: [ 'controller.service_arguments' ]
+
+    # Configure symfony serializer and (de)normalizer chain
+    Symfony\Component\Serializer\NameConverter\CamelCaseToSnakeCaseNameConverter: ~
+    Symfony\Component\PropertyInfo\Extractor\PhpDocExtractor: ~
+    Symfony\Component\PropertyInfo\Extractor\ReflectionExtractor: ~
+    Symfony\Component\Serializer\Normalizer\DateTimeNormalizer: ~
+
+    Symfony\Component\PropertyInfo\PropertyInfoExtractor:
+        arguments:
+            $typeExtractors:
+                - '@Symfony\Component\PropertyInfo\Extractor\PhpDocExtractor'
+                - '@Symfony\Component\PropertyInfo\Extractor\ReflectionExtractor'
+
+    Symfony\Component\Serializer\Normalizer\GetSetMethodNormalizer:
+        arguments:
+            $nameConverter: '@Symfony\Component\Serializer\NameConverter\CamelCaseToSnakeCaseNameConverter'
+            $propertyTypeExtractor: '@Symfony\Component\PropertyInfo\PropertyInfoExtractor'
+        tags: [ serializer.normalizer ]
